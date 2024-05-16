@@ -1,56 +1,21 @@
-pipeline{
-    agent none
-	environment {
-		registry = 'naresh240/springboothello:latest'
-		registryCredentials = 'docker_credentials'
-		dockerImage = ''
-	}    
+pipeline {
+    agent any
     stages {
-        stage('git checkout'){
-            agent any
-            steps{
-                git branch: 'main',
-                url: 'https://github.com/Naresh240/sonarqube.git'
-            }
-        }
-        stage('Example Build') {
-            agent { docker 'maven:3-alpine' } 
+        stage('Git Checkout') {
             steps {
-                dir('springboot'){
-                    echo 'Hello, Maven'
-                    sh 'mvn clean install'
-                }
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Abhi-chintu/Sonarqube.git']])
+		sh 'cd Sonarqube'
+                echo 'Git Checkout Completed'
             }
         }
-        stage("Deploy to Sonar") {
-            agent any
-            steps{
-                dir('springboot'){ 
-                    withSonarQubeEnv(installationName: 'sonarqube', credentialsId: 'sonar-token') {
-                        sh "${ tool ("sonar-scanner")}/sonar-scanner -Dsonar.projectKey=hellospringboot -Dsonar.projectName=hellospringboot -Dsonar.sourceEncoding=UTF-8 -Dsonar.sources=src"
-                    }
-                }
-            }
-        }
-        stage ('Build Docker Image') {
-            agent any
+
+        stage('SonarQube Analysis') {
             steps {
-                dir('springboot'){                
-                    script {
-                        dockerImage = docker.build registry
-                    }
+                withSonarQubeEnv('ServerNameSonar') {
+                    bat '''mvn clean verify sonar:sonar -Dsonar.projectKey=springboot -Dsonar.projectName='springboot' -Dsonar.host.url=http://65.2.179.112:9000 -Dsonar.login=sqa_fb6f33f8a9de25518de4da1706cf54a932be8370''' //port 9000 is default for sonar
+                    echo 'SonarQube Analysis Completed'
                 }
             }
         }
-        stage ('Docker Push') {
-            agent any
-            steps {
-                script {
-                    docker.withRegistry('',registryCredentials) {
-                        dockerImage.push()
-                    }
-                }
-            }
-        }        
     }
 }
