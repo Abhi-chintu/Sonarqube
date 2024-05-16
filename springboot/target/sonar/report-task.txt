@@ -1,0 +1,6 @@
+projectKey=springboot
+serverUrl=http://65.2.179.112:9000
+serverVersion=9.9.0.65466
+dashboardUrl=http://65.2.179.112:9000/dashboard?id=springboot
+ceTaskId=AY-CFWxd_0AtRcmXewFN
+ceTaskUrl=http://65.2.179.112:9000/api/ce/task?id=AY-CFWxd_0AtRcmXewFN
